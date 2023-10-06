@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an Amazon EC2 instance with a security group
+
+Resources:
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My security group
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0  # Se modifica según las necesidades de la máquina
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-XXXXXXXXXXXXXXXXX  # Indicar la imagen a utilizar
+      KeyName: MySSHKey  # Reemplazar con el nombre de mi llave
+      SecurityGroups:
+        - Ref: MySecurityGroup
