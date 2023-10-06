@@ -2,12 +2,17 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Create an Amazon EC2 instance with a security group
 
 Resources:
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: MySSHKey  # Nombre de la nueva clave SSH
+
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: My security group
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0  # Se modifica según las necesidades de la máquina
+        - CidrIp: 0.0.0.0/0
           FromPort: 22
           ToPort: 22
           IpProtocol: tcp
@@ -16,7 +21,11 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-XXXXXXXXXXXXXXXXX  # Indicar la imagen a utilizar
-      KeyName: MySSHKey  # Reemplazar con el nombre de mi llave
-      SecurityGroups:
-        - Ref: MySecurityGroup
+      ImageId: ami-053b0d53c279acc90  # Reemplaza por la ami que quieras
+      KeyName: MySSHKey  # Reemplaza por el nombre de la llave SSH
+      SubnetId: subnet-XXXXXXXX  # Reemplaza por el ID  de tu subnet
+
+Outputs:
+  InstanceId:
+    Description: ID of the created EC2 instance
+    Value: !Ref MyEC2Instance
