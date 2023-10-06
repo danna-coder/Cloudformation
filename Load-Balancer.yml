@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an Amazon EC2 instance with a security group and an Application Load Balancer
+
+Resources:
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: MySSHKey  # Nombre de la nueva clave SSH
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My security group
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+
+  MyEC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-053b0d53c279acc90  # Reemplaza por la AMI que desees
+      KeyName: MySSHKey  # Reemplaza por el nombre de tu llave SSH
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      SubnetId: subnet-XXXXXXXX  # Reemplaza por el ID de tu subnet
+
+  MyEC2Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-053b0d53c279acc90  # Reemplaza por la AMI que desees
+      KeyName: MySSHKey  # Reemplaza por el nombre de tu llave SSH
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      SubnetId: subnet-XXXXXXXX  # Reemplaza por el ID de tu subnet
+
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+        - subnet-XXXXXXXX  # Reemplaza por el ID de tu subnet
+        - subnet-XXXXXXXX  # Agrega el ID de otra subnet si es necesario
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPath: /  # Cambia según las necesidades de tu aplicación
+      HealthCheckProtocol: HTTP
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: vpc-XXXXXXXX  # Reemplaza por el ID de tu VPC
+
+  MyListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 200
+            ContentType: 'Hello from the Load Balancer!'
+      LoadBalancerArn:
+        Fn::Ref: MyLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  Instance1Id:
+    Description: ID of the first created EC2 instance
+    Value: !Ref MyEC2Instance1
+
+  Instance2Id:
+    Description: ID of the second created EC2 instance
+    Value: !Ref MyEC2Instance2
+
+  LoadBalancerDNSName:
+    Description: DNS name of the Load Balancer
+    Value: !GetAtt MyLoadBalancer.DNSName
