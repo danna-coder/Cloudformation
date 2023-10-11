@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template para crear una instancia de Amazon Aurora (PostgreSQL) en Amazon RDS
+
+Parameters:
+  AccountId:
+    Type: String
+    Description: AWS Account ID
+  Region:
+    Type: String
+    Description: AWS Region
+  DBInstanceIdentifier:
+    Type: String
+    Description: Nombre de la instancia de base de datos    
+  DBName:
+    Type: String
+    Description: Nombre de la base de datos    
+  DBMasterUsername:
+    Type: String
+    Description: Nombre de usuario del maestro de la base de datos    
+  DBMasterUserPassword:
+    Type: String
+    Description: Password   
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: # configuración de networking para RDS
+      DBSubnetGroupDescription: Subnet Group para la instancia de RDS Aurora
+      SubnetIds:
+        - subnet-XXXXXXXXXX  # ID de la primera subnet (reemplazar con tus valores)
+        - subnet-XXXXXXXXXX  # ID de la segunda subnet (reemplazar con tus valores)
+        
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: rds-test
+      Engine: aurora-postgresql
+      Port: 5432
+      EngineMode: provisioned
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword: !Ref DBMasterUserPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      EnableCloudwatchLogsExports: 
+        - "postgresql"
+      DeletionProtection: true  
+      StorageEncrypted: true
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBInstanceClass: db.t3.medium  # Puedes cambiar el tamaño de la instancia según tus necesidades
+      DBClusterIdentifier: !Ref DBCluster
+      PubliclyAccessible: false
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Tags: # En esta sección Klap puede agregar sus tags
+        - 
+          Key: "client"
+          Value: "XXXX"
+        - 
+          Key: "EXAMPLE"
+          Value: "EXAMPLE"
+        - 
+          Key: "EXAMPLE"
+          Value: "EXAMPLE"
+        - 
+          Key: "EXAMPLE"
+          Value: "EXAMPLE"
+
+Outputs:
+  DBClusterEndpoint:
+    Description: Endpoint del clúster de base de datos Aurora
+    Value: !GetAtt DBCluster.Endpoint.Address
+  DBInstanceEndpoint:
+    Description: Endpoint de la instancia de base de datos
+    Value: !GetAtt DBInstance.Endpoint.Address
